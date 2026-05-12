@@ -11,9 +11,9 @@
 <main>
 <section class="card start-card" id="startScreen"><div class="kicker">TMT Spiel</div><h1 class="brand-title">GeoGuessr</h1><p>Schau auf die Leinwand, entscheide dich für eine Antwort und tippe sie hier ein. Deine Antwort zählt für deinen Block.</p><div class="actions"><button id="startBtn">Spiel starten</button></div><p class="status">Block: <strong id="startBlockLabel"></strong></p></section>
 <section class="card hide" id="quizScreen"><div class="topline"><div><div class="kicker">TMT GeoGuessr</div><h1 class="question-title" id="headline">Frage</h1></div><div class="badge" id="blockBadge"></div></div><div class="progress-wrap"><div class="progress-head"><span class="progress-text" id="progressText">Frage 1 / 6</span><span class="progress-text" id="answeredText">noch nicht beantwortet</span></div><div class="progress"><span id="progressBar"></span></div></div><div class="question-hint" id="imageHint"></div><div class="answers" id="answers"></div><p class="status" id="status"></p><div class="actions"><button class="secondary" id="backBtn">Zurück</button><button id="nextBtn" disabled>Weiter</button></div></section>
-<section class="card start-card hide" id="finishScreen"><div class="kicker">Fertig</div><h1 class="brand-title">Danke!</h1><p>Deine Antworten wurden gespeichert. Die Regie sieht die Auswertung live.</p><p class="status">Bitte warte auf die Moderation.</p></section>
+<section class="card start-card hide" id="finishScreen"><div class="kicker">Fertig</div><h1 class="brand-title">Danke!</h1><p>Deine Antworten wurden gespeichert. Die Ergebnisse werden live angezeigt.</p><p class="status">Bitte warte auf die Moderation.</p></section>
 </main>
-<script>window.BLOCK_ID="blau";window.BLOCK_LABEL="Blau";document.body.classList.add("theme-blau");</script>
+<script>window.BLOCK_ID="blau";window.BLOCK_LABEL="Blau";document.body.classList.add("theme-"+window.BLOCK_ID);</script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
