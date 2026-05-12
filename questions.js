@@ -2,7 +2,6 @@ export const QUESTIONS = [
   {
     "id": "q1",
     "title": "Wo ist Stefan aufgewachsen?",
-    "imageHint": "Street View: Schwäbischer Ort / Heimatregion",
     "answers": [
       {
         "text": "<strong>Bad Urach</strong>",
@@ -24,23 +23,22 @@ export const QUESTIONS = [
   },
   {
     "id": "q2",
-    "title": "Welche Stadt passt zu Stefans Lieblingsverein?",
-    "imageHint": "Street View: Stadtgefühl rund um Fußball, aber ohne klares Stadionbild",
+    "title": "Stefans Lieblingsverein: Welches Stadion ist das?",
     "answers": [
       {
-        "text": "<strong>Karlsruhe</strong>",
+        "text": "<strong>Wildparkstadion Karlsruhe</strong>",
         "correct": false
       },
       {
-        "text": "<strong>Freiburg</strong>",
+        "text": "<strong>Europa-Park Stadion Freiburg</strong>",
         "correct": false
       },
       {
-        "text": "<strong>Stuttgart</strong>",
+        "text": "<strong>MHPArena Stuttgart</strong>",
         "correct": true
       },
       {
-        "text": "<strong>München</strong>",
+        "text": "<strong>Allianz Arena München</strong>",
         "correct": false
       }
     ]
@@ -48,7 +46,6 @@ export const QUESTIONS = [
   {
     "id": "q3",
     "title": "In welcher Stadt hat Debora in Kanada gewohnt?",
-    "imageHint": "Street View: Nordamerikanische Großstadt / Don Mills",
     "answers": [
       {
         "text": "<strong>Vancouver</strong>",
@@ -71,7 +68,6 @@ export const QUESTIONS = [
   {
     "id": "q4",
     "title": "Wo hat Stefan studiert?",
-    "imageHint": "Street View: Christliche Hochschule / Campusgelände",
     "answers": [
       {
         "text": "<strong>Tabor Marburg</strong>",
@@ -94,7 +90,6 @@ export const QUESTIONS = [
   {
     "id": "q5",
     "title": "In welchem Land waren Stefan und Debora auf Hochzeitsreise?",
-    "imageHint": "Street View: Südostasien / Reise-Location",
     "answers": [
       {
         "text": "<strong>Thailand</strong>",
@@ -117,7 +112,6 @@ export const QUESTIONS = [
   {
     "id": "q6",
     "title": "In welchem Land liegt dieser Ort aus ihrem Missionsalltag?",
-    "imageHint": "Street View: Blantyre / südliches Afrika",
     "answers": [
       {
         "text": "<strong>Uganda</strong>",
