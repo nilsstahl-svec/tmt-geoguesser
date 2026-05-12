@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TMT Geoguessr Regie</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <main>
+    <section class="card">
+      <div class="topline">
+        <div>
+          <div class="kicker">Live-Auswertung</div>
+          <h1>TMT Geoguessr Regie</h1>
+        </div>
+        <button class="secondary" id="resetLocal">Ansicht aktualisieren</button>
+      </div>
+
+      <p class="small">Diese Seite zeigt live, wie viele Antworten pro Block und Frage eingegangen sind und wie viel Prozent richtig waren.</p>
+
+      <div class="grid" id="results"></div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import { firebaseConfig } from "../firebase-config.js";
+    import { QUESTIONS } from "../questions.js";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const blocks = [
+      { id: "rot", label: "Rot" },
+      { id: "blau", label: "Blau" },
+      { id: "gruen", label: "Grün" },
+    ];
+
+    const results = document.getElementById("results");
+
+    const q = query(
+      collection(db, "answers"),
+      where("eventId", "==", "tmt-geoguessr-test")
+    );
+
+    onSnapshot(q, (snapshot) => {
+      const data = [];
+
+      snapshot.forEach(doc => data.push(doc.data()));
+
+      render(data);
+    }, (error) => {
+      console.error(error);
+      results.innerHTML = `<div class="result-card">Fehler beim Laden. Prüfe Firebase-Konfiguration, Firestore-Index und Regeln.</div>`;
+    });
+
+    function render(data) {
+      results.innerHTML = "";
+
+      QUESTIONS.forEach(question => {
+        const card = document.createElement("div");
+        card.className = "result-card";
+
+        const title = document.createElement("h2");
+        title.textContent = question.title;
+        card.appendChild(title);
+
+        blocks.forEach(block => {
+          const answers = data.filter(item => item.questionId === question.id && item.blockId === block.id);
+          const total = answers.length;
+          const correct = answers.filter(item => item.correct).length;
+          const percent = total === 0 ? 0 : Math.round((correct / total) * 100);
+
+          const line = document.createElement("div");
+          line.className = "result-line";
+          line.innerHTML = `
+            <strong>${block.label}</strong>
+            <div>
+              <div class="bar"><span style="width:${percent}%"></span></div>
+              <div class="small">${correct} von ${total} richtig</div>
+            </div>
+            <strong>${percent}%</strong>
+          `;
+          card.appendChild(line);
+        });
+
+        results.appendChild(card);
+      });
+    }
+
+    document.getElementById("resetLocal").onclick = () => location.reload();
+  </script>
+</body>
+</html>

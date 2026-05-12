@@ -1,0 +1,144 @@
+:root {
+  --bg: #10131c;
+  --card: #181d2b;
+  --text: #f4f5f7;
+  --muted: #b8bfcc;
+  --accent: #ffffff;
+  --border: rgba(255,255,255,.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top, #242b40 0%, var(--bg) 55%);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+main {
+  width: min(920px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0 48px;
+}
+
+.card {
+  background: rgba(24, 29, 43, .94);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 16px 50px rgba(0,0,0,.25);
+}
+
+.kicker {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+h1, h2 {
+  margin: 0 0 16px;
+  line-height: 1.1;
+}
+
+.question-hint {
+  border: 1px dashed var(--border);
+  border-radius: 18px;
+  padding: 18px;
+  color: var(--muted);
+  margin: 18px 0;
+}
+
+.answers {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+button {
+  appearance: none;
+  border: 0;
+  border-radius: 16px;
+  padding: 16px 18px;
+  font-size: 17px;
+  font-weight: 650;
+  cursor: pointer;
+  background: #fff;
+  color: #10131c;
+}
+
+button.secondary {
+  background: rgba(255,255,255,.10);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.status {
+  margin-top: 16px;
+  color: var(--muted);
+}
+
+.topline {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.badge {
+  display: inline-flex;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.10);
+  border: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.grid {
+  display: grid;
+  gap: 16px;
+}
+
+.result-card {
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.result-line {
+  display: grid;
+  grid-template-columns: 110px 1fr 80px;
+  gap: 12px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.bar {
+  height: 16px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.12);
+  overflow: hidden;
+}
+
+.bar > span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: #fff;
+}
+
+.small {
+  color: var(--muted);
+  font-size: 14px;
+}

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TMT Geoguessr Test</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <main>
+    <section class="card">
+      <div class="topline">
+        <div>
+          <div class="kicker">TMT Geoguessr Test</div>
+          <h1 id="headline">Lade Quiz…</h1>
+        </div>
+        <div class="badge" id="blockBadge"></div>
+      </div>
+
+      <div class="question-hint" id="imageHint"></div>
+
+      <div class="answers" id="answers"></div>
+
+      <p class="status" id="status"></p>
+
+      <button class="secondary" id="nextBtn" style="display:none; margin-top:18px;">Weiter</button>
+    </section>
+  </main>
+
+  <script>window.BLOCK_ID = "rot"; window.BLOCK_LABEL = "Rot";</script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import { firebaseConfig } from "../firebase-config.js";
+    import { QUESTIONS } from "../questions.js";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const BLOCK_ID = window.BLOCK_ID;
+    const BLOCK_LABEL = window.BLOCK_LABEL;
+
+    const headline = document.getElementById("headline");
+    const blockBadge = document.getElementById("blockBadge");
+    const imageHint = document.getElementById("imageHint");
+    const answers = document.getElementById("answers");
+    const status = document.getElementById("status");
+    const nextBtn = document.getElementById("nextBtn");
+
+    let currentIndex = 0;
+    let answeredQuestions = new Set();
+
+    blockBadge.textContent = "Block: " + BLOCK_LABEL;
+
+    function renderQuestion() {
+      const q = QUESTIONS[currentIndex];
+
+      headline.textContent = q.title;
+      imageHint.textContent = q.imageHint;
+      status.textContent = "Wähle eine Antwort aus.";
+      nextBtn.style.display = "none";
+      answers.innerHTML = "";
+
+      q.answers.forEach((answer, index) => {
+        const btn = document.createElement("button");
+        btn.textContent = `${String.fromCharCode(65 + index)}: ${answer.text}`;
+        btn.onclick = () => submitAnswer(q, answer, index);
+        answers.appendChild(btn);
+      });
+    }
+
+    async function submitAnswer(question, answer, index) {
+      if (answeredQuestions.has(question.id)) return;
+
+      answeredQuestions.add(question.id);
+      [...answers.querySelectorAll("button")].forEach(btn => btn.disabled = true);
+      status.textContent = "Antwort wird gespeichert…";
+
+      try {
+        await addDoc(collection(db, "answers"), {
+          eventId: "tmt-geoguessr-test",
+          blockId: BLOCK_ID,
+          blockLabel: BLOCK_LABEL,
+          questionId: question.id,
+          questionTitle: question.title,
+          selectedIndex: index,
+          selectedText: answer.text,
+          correct: answer.correct,
+          createdAt: serverTimestamp(),
+          userAgent: navigator.userAgent
+        });
+
+        status.textContent = "Antwort gespeichert.";
+        if (currentIndex < QUESTIONS.length - 1) {
+          nextBtn.style.display = "inline-block";
+        } else {
+          status.textContent = "Danke, du bist fertig.";
+        }
+      } catch (error) {
+        console.error(error);
+        status.textContent = "Fehler beim Speichern. Prüfe Firebase-Konfiguration und Regeln.";
+      }
+    }
+
+    nextBtn.onclick = () => {
+      currentIndex++;
+      renderQuestion();
+    };
+
+    renderQuestion();
+  </script>
+</body>
+</html>
