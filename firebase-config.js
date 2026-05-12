@@ -1,13 +1,9 @@
-// firebase-config.js
-// 1. Firebase-Projekt erstellen
-// 2. Firestore aktivieren
-// 3. Die Werte unten aus Firebase > Projekteinstellungen > Web-App kopieren
-
 export const firebaseConfig = {
-  apiKey: "HIER_EINTRAGEN",
-  authDomain: "HIER_EINTRAGEN",
-  projectId: "HIER_EINTRAGEN",
-  storageBucket: "HIER_EINTRAGEN",
-  messagingSenderId: "HIER_EINTRAGEN",
-  appId: "HIER_EINTRAGEN"
+  apiKey: "AIzaSyAd6QglJVSFjVlVWGAHPEnEvJDAxMpm4oo",
+  authDomain: "tmt-geoguessr.firebaseapp.com",
+  projectId: "tmt-geoguessr",
+  storageBucket: "tmt-geoguessr.firebasestorage.app",
+  messagingSenderId: "938838878536",
+  appId: "1:938838878536:web:214c23764829eaff746b7d",
+  measurementId: "G-N7M8ECT0KF"
 };
