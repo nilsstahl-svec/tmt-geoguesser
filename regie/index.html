@@ -1,15 +1,21 @@
 <!doctype html>
 <html lang="de">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TMT GeoGuessr Ergebnisse</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700&family=Fjalla+One&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 <link rel="stylesheet" href="../style.css">
 </head>
+
 <body class="results-body">
 <main class="results-stage">
 <section class="card results-card">
+
   <div class="topline">
     <div>
       <div class="kicker">Live-Ergebnisse</div>
@@ -18,77 +24,248 @@
     </div>
     <div class="badge" id="liveBadge">LIVE</div>
   </div>
+
   <div id="content"></div>
+
   <div class="result-nav">
     <button class="secondary" id="prevBtn">Zurück</button>
+    <button class="secondary" id="leaderboardBtn">Gesamtleaderboard</button>
     <div class="slide-indicator" id="slideIndicator">Übersicht</div>
     <button id="nextBtn">Weiter</button>
   </div>
+
 </section>
 </main>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
 import { firebaseConfig } from "../firebase-config.js";
 import { QUESTIONS } from "../questions.js";
-const app=initializeApp(firebaseConfig);const db=getFirestore(app);
-const blocks=[{id:"rot",label:"Rot",theme:"theme-rot"},{id:"blau",label:"Blau",theme:"theme-blau"},{id:"gruen",label:"Grün",theme:"theme-gruen"}];
-const content=document.getElementById("content"),pageTitle=document.getElementById("pageTitle"),pageMeta=document.getElementById("pageMeta"),slideIndicator=document.getElementById("slideIndicator"),prevBtn=document.getElementById("prevBtn"),nextBtn=document.getElementById("nextBtn");
-let slide=0;let latestData=[];
-const finalSlideIndex=QUESTIONS.length+1;
-const q=query(collection(db,"answers"),where("eventId","==","tmt-geoguessr-test"));
-onSnapshot(q,(snapshot)=>{latestData=[];snapshot.forEach(doc=>latestData.push(doc.data()));render();},(error)=>{console.error(error);content.innerHTML=`<div class="leader-sub">Fehler beim Laden. Prüfe Firebase-Regeln und Konfiguration.</div>`});
 
-function questionStats(questionId,blockId){
-  const answers=latestData.filter(item=>item.questionId===questionId&&item.blockId===blockId);
-  const total=answers.length;
-  const correct=answers.filter(item=>item.correct).length;
-  const percent=total===0?0:Math.round((correct/total)*100);
-  return {total,correct,percent};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const blocks = [
+  { id: "rot", label: "Rot", theme: "theme-rot" },
+  { id: "blau", label: "Blau", theme: "theme-blau" },
+  { id: "gruen", label: "Grün", theme: "theme-gruen" }
+];
+
+const content = document.getElementById("content");
+const pageTitle = document.getElementById("pageTitle");
+const pageMeta = document.getElementById("pageMeta");
+const slideIndicator = document.getElementById("slideIndicator");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const leaderboardBtn = document.getElementById("leaderboardBtn");
+
+let slide = 0;
+let latestData = [];
+
+const finalSlideIndex = QUESTIONS.length + 1;
+
+const q = query(
+  collection(db, "answers"),
+  where("eventId", "==", "tmt-geoguessr-test")
+);
+
+onSnapshot(
+  q,
+  (snapshot) => {
+    latestData = [];
+    snapshot.forEach(doc => latestData.push(doc.data()));
+    render();
+  },
+  (error) => {
+    console.error(error);
+    content.innerHTML = `<div class="leader-sub">Fehler beim Laden. Prüfe Firebase-Regeln und Konfiguration.</div>`;
+  }
+);
+
+function questionStats(questionId, blockId) {
+  const answers = latestData.filter(item => item.questionId === questionId && item.blockId === blockId);
+  const total = answers.length;
+  const correct = answers.filter(item => item.correct).length;
+  const percent = total === 0 ? 0 : Math.round((correct / total) * 100);
+  return { total, correct, percent };
 }
-function questionWinners(questionId){
-  const stats=blocks.map(block=>({...block,...questionStats(questionId,block.id)}));
-  const active=stats.filter(item=>item.total>0);
-  if(active.length===0)return [];
-  const maxPercent=Math.max(...active.map(item=>item.percent));
-  return active.filter(item=>item.percent===maxPercent).map(item=>item.id);
+
+function questionWinners(questionId) {
+  const stats = blocks.map(block => ({
+    ...block,
+    ...questionStats(questionId, block.id)
+  }));
+
+  const active = stats.filter(item => item.total > 0);
+  if (active.length === 0) return [];
+
+  const maxPercent = Math.max(...active.map(item => item.percent));
+  return active.filter(item => item.percent === maxPercent).map(item => item.id);
 }
-function leaderboardStats(){
-  return blocks.map(block=>{
-    let won=0;
-    QUESTIONS.forEach(q=>{
-      if(questionWinners(q.id).includes(block.id)) won++;
+
+function leaderboardStats() {
+  return blocks.map(block => {
+    let won = 0;
+
+    QUESTIONS.forEach(question => {
+      if (questionWinners(question.id).includes(block.id)) {
+        won++;
+      }
     });
-    const totalAnswers=latestData.filter(item=>item.blockId===block.id).length;
-    return {...block,won,totalAnswers};
+
+    const totalAnswers = latestData.filter(item => item.blockId === block.id).length;
+
+    return {
+      ...block,
+      won,
+      totalAnswers
+    };
   });
 }
-function renderLeaderboard(isFinal=false){
-  const stats=leaderboardStats();
-  const maxWon=Math.max(0,...stats.map(item=>item.won));
-  const leaders=stats.filter(item=>item.won===maxWon&&maxWon>0).map(item=>item.label);
-  const title=leaders.length===0?"Noch keine Rundenwertung":leaders.length===1?`Block ${leaders[0]} führt`:`Gleichstand: ${leaders.join(" & ")}`;
-  pageTitle.textContent=isFinal?"Gesamtergebnis":"Ergebnisse";
-  pageMeta.textContent=isFinal?"Endstand nach gewonnenen Fragen":"Leaderboard nach gewonnenen Fragen";
-  slideIndicator.textContent=isFinal?`Finale · ${latestData.length} Antworten`:`Übersicht · ${latestData.length} Antworten`;
-  content.innerHTML=`<div class="leader-title">${isFinal?"Finales Leaderboard":title}</div><div class="leader-sub">Pro Frage gewinnt der Block mit der höchsten Richtig-Prozentzahl. Das Leaderboard zählt gewonnene Fragen.</div><div class="leader-grid">${stats.map(item=>`<div class="leader-item ${item.theme} ${item.won===maxWon&&maxWon>0?'leading':''}"><div class="leader-name">Block ${item.label}</div><div class="leader-score">${item.won}</div><div class="leader-detail">${item.won} gewonnene Fragen · ${item.totalAnswers} Antworten</div>${item.won===maxWon&&maxWon>0?'<div class="leader-crown">'+(isFinal?'Gewinner / vorne':'Aktuell vorne')+'</div>':''}</div>`).join("")}</div>`;
+
+function renderLeaderboard(isFinal = false) {
+  const stats = leaderboardStats();
+
+  const maxWon = Math.max(0, ...stats.map(item => item.won));
+  const leaders = stats
+    .filter(item => item.won === maxWon && maxWon > 0)
+    .map(item => item.label);
+
+  const title =
+    leaders.length === 0
+      ? "Noch keine Rundenwertung"
+      : leaders.length === 1
+        ? `Block ${leaders[0]} führt`
+        : `Gleichstand: ${leaders.join(" & ")}`;
+
+  pageTitle.textContent = isFinal ? "Gesamtergebnis" : "Ergebnisse";
+  pageMeta.textContent = isFinal ? "Endstand" : "Live-Zwischenstand";
+  slideIndicator.textContent = isFinal
+    ? `Finale · ${latestData.length} Antworten`
+    : `Übersicht · ${latestData.length} Antworten`;
+
+  content.innerHTML = `
+    <div class="leader-title">${isFinal ? "Finales Leaderboard" : title}</div>
+
+    <div class="leader-grid">
+      ${stats.map(item => `
+        <div class="leader-item ${item.theme} ${item.won === maxWon && maxWon > 0 ? "leading" : ""}">
+          <div class="leader-name">Block ${item.label}</div>
+          <div class="leader-score">${item.won}</div>
+          <div class="leader-detail">${item.won} gewonnene Fragen · ${item.totalAnswers} Antworten</div>
+          ${
+            item.won === maxWon && maxWon > 0
+              ? `<div class="leader-crown">${isFinal ? "Gewinner / vorne" : "Aktuell vorne"}</div>`
+              : ""
+          }
+        </div>
+      `).join("")}
+    </div>
+  `;
 }
-function renderQuestionSlide(questionIndex){
-  const question=QUESTIONS[questionIndex];
-  pageTitle.textContent=`Frage ${questionIndex+1}`;
-  pageMeta.textContent=question.title;
-  slideIndicator.textContent=`Frage ${questionIndex+1} / ${QUESTIONS.length}`;
-  const stats=blocks.map(block=>({...block,...questionStats(question.id,block.id)}));
-  const active=stats.filter(item=>item.total>0);
-  const maxPercent=active.length?Math.max(...active.map(item=>item.percent)):0;
-  const winners=active.filter(item=>item.percent===maxPercent).map(item=>item.id);
-  const totalQuestionAnswers=latestData.filter(item=>item.questionId===question.id).length;
-  content.innerHTML=`<h2 class="single-question-title">${question.title}</h2><div class="question-result-grid">${stats.map(block=>`<div class="question-result-row ${block.theme} ${winners.includes(block.id)?'winning-row':''}"><div class="result-block">Block ${block.label}</div><div><div class="bar"><span style="width:${block.percent}%"></span></div><div class="small">${block.correct} von ${block.total} richtig</div></div><div class="percent">${block.percent}%</div></div>`).join("")}</div><div class="answer-count">Rundensieger: ${winners.length?winners.map(id=>blocks.find(b=>b.id===id).label).join(" & "):"noch offen"} · Antworten insgesamt: ${totalQuestionAnswers}</div>`;
+
+function renderQuestionSlide(questionIndex) {
+  const question = QUESTIONS[questionIndex];
+
+  pageTitle.textContent = `Frage ${questionIndex + 1}`;
+  pageMeta.textContent = "";
+  slideIndicator.textContent = `Frage ${questionIndex + 1} / ${QUESTIONS.length}`;
+
+  const stats = blocks.map(block => ({
+    ...block,
+    ...questionStats(question.id, block.id)
+  }));
+
+  const active = stats.filter(item => item.total > 0);
+  const maxPercent = active.length ? Math.max(...active.map(item => item.percent)) : 0;
+  const winners = active.filter(item => item.percent === maxPercent).map(item => item.id);
+
+  const totalQuestionAnswers = latestData.filter(item => item.questionId === question.id).length;
+
+  content.innerHTML = `
+    <h2 class="single-question-title">${question.title}</h2>
+
+    <div class="question-result-grid">
+      ${stats.map(block => `
+        <div class="question-result-row ${block.theme} ${winners.includes(block.id) ? "winning-row" : ""}">
+          <div class="result-block">Block ${block.label}</div>
+
+          <div>
+            <div class="bar">
+              <span style="width:${block.percent}%"></span>
+            </div>
+            <div class="small">${block.correct} von ${block.total} richtig</div>
+          </div>
+
+          <div class="percent">${block.percent}%</div>
+        </div>
+      `).join("")}
+    </div>
+
+    <div class="answer-count">
+      Rundensieger: ${
+        winners.length
+          ? winners.map(id => blocks.find(block => block.id === id).label).join(" & ")
+          : "noch offen"
+      } · Antworten insgesamt: ${totalQuestionAnswers}
+    </div>
+  `;
 }
-function render(){prevBtn.disabled=slide===0;nextBtn.disabled=slide===finalSlideIndex;nextBtn.textContent=slide===finalSlideIndex?"Ende":"Weiter";if(slide===0){renderLeaderboard(false)}else if(slide===finalSlideIndex){renderLeaderboard(true)}else{renderQuestionSlide(slide-1)}}
-prevBtn.onclick=()=>{if(slide>0){slide--;render()}};
-nextBtn.onclick=()=>{if(slide<finalSlideIndex){slide++;render()}};
-document.addEventListener("keydown",(event)=>{if(event.key==="ArrowRight"&&slide<finalSlideIndex){slide++;render()}if(event.key==="ArrowLeft"&&slide>0){slide--;render()}});
+
+function render() {
+  prevBtn.disabled = slide === 0;
+  nextBtn.disabled = slide === finalSlideIndex;
+
+  nextBtn.textContent = slide === finalSlideIndex ? "Ende" : "Weiter";
+
+  if (slide === 0) {
+    renderLeaderboard(false);
+  } else if (slide === finalSlideIndex) {
+    renderLeaderboard(true);
+  } else {
+    renderQuestionSlide(slide - 1);
+  }
+}
+
+prevBtn.onclick = () => {
+  if (slide > 0) {
+    slide--;
+    render();
+  }
+};
+
+nextBtn.onclick = () => {
+  if (slide < finalSlideIndex) {
+    slide++;
+    render();
+  }
+};
+
+leaderboardBtn.onclick = () => {
+  slide = finalSlideIndex;
+  render();
+};
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "ArrowRight" && slide < finalSlideIndex) {
+    slide++;
+    render();
+  }
+
+  if (event.key === "ArrowLeft" && slide > 0) {
+    slide--;
+    render();
+  }
+
+  if (event.key.toLowerCase() === "l") {
+    slide = finalSlideIndex;
+    render();
+  }
+});
+
 render();
 </script>
-</body></html>
+</body>
+</html>
