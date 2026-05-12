@@ -10,6 +10,42 @@
 <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700&family=Fjalla+One&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="../style.css">
+
+<style>
+  .quick-jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+  }
+
+  .quick-jump button {
+    min-width: 54px;
+    padding: 12px 16px;
+    box-shadow: none;
+  }
+
+  .quick-jump button.active {
+    outline: 3px solid var(--black);
+    background: var(--lime);
+  }
+
+  .quick-jump.hide {
+    display: none !important;
+  }
+
+  @media (max-width: 760px) {
+    .quick-jump {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .quick-jump button {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+</style>
 </head>
 
 <body class="results-body">
@@ -26,6 +62,8 @@
   </div>
 
   <div id="content"></div>
+
+  <div class="quick-jump" id="quickJump"></div>
 
   <div class="result-nav">
     <button class="secondary" id="prevBtn">Zurück</button>
@@ -60,6 +98,7 @@ const slideIndicator = document.getElementById("slideIndicator");
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
 const leaderboardBtn = document.getElementById("leaderboardBtn");
+const quickJump = document.getElementById("quickJump");
 
 let slide = 0;
 let latestData = [];
@@ -121,6 +160,39 @@ function leaderboardStats() {
       ...block,
       won,
       totalAnswers
+    };
+  });
+}
+
+function renderQuickJump() {
+  const shouldShow = slide === 0 || slide === finalSlideIndex;
+
+  quickJump.classList.toggle("hide", !shouldShow);
+
+  if (!shouldShow) {
+    quickJump.innerHTML = "";
+    return;
+  }
+
+  const buttons = [
+    { label: "Übersicht", target: 0 },
+    ...QUESTIONS.map((_, index) => ({ label: String(index + 1), target: index + 1 })),
+    { label: "Finale", target: finalSlideIndex }
+  ];
+
+  quickJump.innerHTML = buttons.map(button => `
+    <button
+      class="${button.target === slide ? "active" : "secondary"}"
+      data-target="${button.target}"
+    >
+      ${button.label}
+    </button>
+  `).join("");
+
+  quickJump.querySelectorAll("button").forEach(button => {
+    button.onclick = () => {
+      slide = Number(button.dataset.target);
+      render();
     };
   });
 }
@@ -227,6 +299,8 @@ function render() {
   } else {
     renderQuestionSlide(slide - 1);
   }
+
+  renderQuickJump();
 }
 
 prevBtn.onclick = () => {
@@ -261,6 +335,17 @@ document.addEventListener("keydown", (event) => {
 
   if (event.key.toLowerCase() === "l") {
     slide = finalSlideIndex;
+    render();
+  }
+
+  if (event.key === "0") {
+    slide = 0;
+    render();
+  }
+
+  const number = Number(event.key);
+  if (number >= 1 && number <= QUESTIONS.length) {
+    slide = number;
     render();
   }
 });
