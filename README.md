@@ -1,2 +1,1 @@
-TMT GeoGuessr Version mit Warte-Seite nach Einloggen, ohne Street-View-Hinweise und finalem Leaderboard.
-Alle Dateien ins GitHub-Repo hochladen und vorhandene Dateien ersetzen.
+TMT GeoGuessr Version: Prozentwertung pro Frage, Gesamtleaderboard nach gewonnenen Fragen, keine Zurückfunktion für Teams, 16:9-Ergebnisseite.

@@ -38,17 +38,56 @@ let slide=0;let latestData=[];
 const finalSlideIndex=QUESTIONS.length+1;
 const q=query(collection(db,"answers"),where("eventId","==","tmt-geoguessr-test"));
 onSnapshot(q,(snapshot)=>{latestData=[];snapshot.forEach(doc=>latestData.push(doc.data()));render();},(error)=>{console.error(error);content.innerHTML=`<div class="leader-sub">Fehler beim Laden. Prüfe Firebase-Regeln und Konfiguration.</div>`});
-function blockStats(data,blockId){const answers=data.filter(item=>item.blockId===blockId);return{total:answers.length,correct:answers.filter(item=>item.correct).length}}
-function renderLeaderboard(isFinal=false){const stats=blocks.map(block=>({...block,...blockStats(latestData,block.id)}));const maxCorrect=Math.max(0,...stats.map(item=>item.correct));const leaders=stats.filter(item=>item.correct===maxCorrect&&maxCorrect>0).map(item=>item.label);const title=leaders.length===0?"Noch keine Antworten":leaders.length===1?`Block ${leaders[0]} führt`:`Gleichstand: ${leaders.join(" & ")}`;
-pageTitle.textContent=isFinal?"Gesamtergebnis":"Ergebnisse";pageMeta.textContent=isFinal?"Endstand über alle Fragen":"Gesamtstand über alle Fragen";slideIndicator.textContent=isFinal?`Finale · ${latestData.length} Antworten`:`Übersicht · ${latestData.length} Antworten`;
-content.innerHTML=`<div class="leader-title">${isFinal?"Finales Leaderboard":title}</div><div class="leader-sub">Gewertet wird die Anzahl richtiger Antworten insgesamt.</div><div class="leader-grid">${stats.map(item=>`<div class="leader-item ${item.theme} ${item.correct===maxCorrect&&maxCorrect>0?'leading':''}"><div class="leader-name">Block ${item.label}</div><div class="leader-score">${item.correct}</div><div class="leader-detail">${item.correct} richtig bei ${item.total} Antworten</div>${item.correct===maxCorrect&&maxCorrect>0?'<div class="leader-crown">'+(isFinal?'Gewinner / vorne':'Aktuell vorne')+'</div>':''}</div>`).join("")}</div>`;
+
+function questionStats(questionId,blockId){
+  const answers=latestData.filter(item=>item.questionId===questionId&&item.blockId===blockId);
+  const total=answers.length;
+  const correct=answers.filter(item=>item.correct).length;
+  const percent=total===0?0:Math.round((correct/total)*100);
+  return {total,correct,percent};
 }
-function renderQuestionSlide(questionIndex){const question=QUESTIONS[questionIndex];pageTitle.textContent=`Frage ${questionIndex+1}`;pageMeta.textContent=question.title;slideIndicator.textContent=`Frage ${questionIndex+1} / ${QUESTIONS.length}`;
-const totalQuestionAnswers=latestData.filter(item=>item.questionId===question.id).length;
-content.innerHTML=`<h2 class="single-question-title">${question.title}</h2><div class="question-result-grid">${blocks.map(block=>{const answers=latestData.filter(item=>item.questionId===question.id&&item.blockId===block.id);const total=answers.length;const correct=answers.filter(item=>item.correct).length;const percent=total===0?0:Math.round((correct/total)*100);return `<div class="question-result-row ${block.theme}"><div class="result-block">Block ${block.label}</div><div><div class="bar"><span style="width:${percent}%"></span></div><div class="small">${correct} von ${total} richtig</div></div><div class="percent">${percent}%</div></div>`}).join("")}</div><div class="answer-count">Antworten für diese Frage insgesamt: ${totalQuestionAnswers}</div>`;
+function questionWinners(questionId){
+  const stats=blocks.map(block=>({...block,...questionStats(questionId,block.id)}));
+  const active=stats.filter(item=>item.total>0);
+  if(active.length===0)return [];
+  const maxPercent=Math.max(...active.map(item=>item.percent));
+  return active.filter(item=>item.percent===maxPercent).map(item=>item.id);
+}
+function leaderboardStats(){
+  return blocks.map(block=>{
+    let won=0;
+    QUESTIONS.forEach(q=>{
+      if(questionWinners(q.id).includes(block.id)) won++;
+    });
+    const totalAnswers=latestData.filter(item=>item.blockId===block.id).length;
+    return {...block,won,totalAnswers};
+  });
+}
+function renderLeaderboard(isFinal=false){
+  const stats=leaderboardStats();
+  const maxWon=Math.max(0,...stats.map(item=>item.won));
+  const leaders=stats.filter(item=>item.won===maxWon&&maxWon>0).map(item=>item.label);
+  const title=leaders.length===0?"Noch keine Rundenwertung":leaders.length===1?`Block ${leaders[0]} führt`:`Gleichstand: ${leaders.join(" & ")}`;
+  pageTitle.textContent=isFinal?"Gesamtergebnis":"Ergebnisse";
+  pageMeta.textContent=isFinal?"Endstand nach gewonnenen Fragen":"Leaderboard nach gewonnenen Fragen";
+  slideIndicator.textContent=isFinal?`Finale · ${latestData.length} Antworten`:`Übersicht · ${latestData.length} Antworten`;
+  content.innerHTML=`<div class="leader-title">${isFinal?"Finales Leaderboard":title}</div><div class="leader-sub">Pro Frage gewinnt der Block mit der höchsten Richtig-Prozentzahl. Das Leaderboard zählt gewonnene Fragen.</div><div class="leader-grid">${stats.map(item=>`<div class="leader-item ${item.theme} ${item.won===maxWon&&maxWon>0?'leading':''}"><div class="leader-name">Block ${item.label}</div><div class="leader-score">${item.won}</div><div class="leader-detail">${item.won} gewonnene Fragen · ${item.totalAnswers} Antworten</div>${item.won===maxWon&&maxWon>0?'<div class="leader-crown">'+(isFinal?'Gewinner / vorne':'Aktuell vorne')+'</div>':''}</div>`).join("")}</div>`;
+}
+function renderQuestionSlide(questionIndex){
+  const question=QUESTIONS[questionIndex];
+  pageTitle.textContent=`Frage ${questionIndex+1}`;
+  pageMeta.textContent=question.title;
+  slideIndicator.textContent=`Frage ${questionIndex+1} / ${QUESTIONS.length}`;
+  const stats=blocks.map(block=>({...block,...questionStats(question.id,block.id)}));
+  const active=stats.filter(item=>item.total>0);
+  const maxPercent=active.length?Math.max(...active.map(item=>item.percent)):0;
+  const winners=active.filter(item=>item.percent===maxPercent).map(item=>item.id);
+  const totalQuestionAnswers=latestData.filter(item=>item.questionId===question.id).length;
+  content.innerHTML=`<h2 class="single-question-title">${question.title}</h2><div class="question-result-grid">${stats.map(block=>`<div class="question-result-row ${block.theme} ${winners.includes(block.id)?'winning-row':''}"><div class="result-block">Block ${block.label}</div><div><div class="bar"><span style="width:${block.percent}%"></span></div><div class="small">${block.correct} von ${block.total} richtig</div></div><div class="percent">${block.percent}%</div></div>`).join("")}</div><div class="answer-count">Rundensieger: ${winners.length?winners.map(id=>blocks.find(b=>b.id===id).label).join(" & "):"noch offen"} · Antworten insgesamt: ${totalQuestionAnswers}</div>`;
 }
 function render(){prevBtn.disabled=slide===0;nextBtn.disabled=slide===finalSlideIndex;nextBtn.textContent=slide===finalSlideIndex?"Ende":"Weiter";if(slide===0){renderLeaderboard(false)}else if(slide===finalSlideIndex){renderLeaderboard(true)}else{renderQuestionSlide(slide-1)}}
-prevBtn.onclick=()=>{if(slide>0){slide--;render()}};nextBtn.onclick=()=>{if(slide<finalSlideIndex){slide++;render()}};
+prevBtn.onclick=()=>{if(slide>0){slide--;render()}};
+nextBtn.onclick=()=>{if(slide<finalSlideIndex){slide++;render()}};
 document.addEventListener("keydown",(event)=>{if(event.key==="ArrowRight"&&slide<finalSlideIndex){slide++;render()}if(event.key==="ArrowLeft"&&slide>0){slide--;render()}});
 render();
 </script>
