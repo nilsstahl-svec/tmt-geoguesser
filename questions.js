@@ -1,69 +1,138 @@
 export const QUESTIONS = [
   {
     "id": "q1",
-    "title": "Testfrage 1",
-    "imageHint": "Street View: Eine große Brücke über einem Fluss",
+    "title": "Wo ist Stefan aufgewachsen?",
+    "imageHint": "Street View: Schwäbischer Ort / Heimatregion",
     "answers": [
       {
-        "text": "London",
+        "text": "<strong>Bad Urach</strong>",
         "correct": false
       },
       {
-        "text": "Prag",
+        "text": "<strong>Geislingen an der Steige / Eybach</strong>",
         "correct": true
       },
       {
-        "text": "Paris",
+        "text": "<strong>Schwäbisch Gmünd</strong>",
         "correct": false
       },
       {
-        "text": "Hamburg",
+        "text": "<strong>Freudenstadt</strong>",
         "correct": false
       }
     ]
   },
   {
     "id": "q2",
-    "title": "Testfrage 2",
-    "imageHint": "Street View: Eine Wüste mit langer Straße",
+    "title": "Welche Stadt passt zu Stefans Lieblingsverein?",
+    "imageHint": "Street View: Stadtgefühl rund um Fußball, aber ohne klares Stadionbild",
     "answers": [
       {
-        "text": "Namibia",
+        "text": "<strong>Karlsruhe</strong>",
+        "correct": false
+      },
+      {
+        "text": "<strong>Freiburg</strong>",
+        "correct": false
+      },
+      {
+        "text": "<strong>Stuttgart</strong>",
         "correct": true
       },
       {
-        "text": "Norwegen",
-        "correct": false
-      },
-      {
-        "text": "Japan",
-        "correct": false
-      },
-      {
-        "text": "Island",
+        "text": "<strong>München</strong>",
         "correct": false
       }
     ]
   },
   {
     "id": "q3",
-    "title": "Testfrage 3",
-    "imageHint": "Street View: Ein Bergdorf mit Alpenpanorama",
+    "title": "In welcher Stadt hat Debora in Kanada gewohnt?",
+    "imageHint": "Street View: Nordamerikanische Großstadt / Don Mills",
     "answers": [
       {
-        "text": "Schweiz",
+        "text": "<strong>Vancouver</strong>",
+        "correct": false
+      },
+      {
+        "text": "<strong>Toronto</strong>",
         "correct": true
       },
       {
-        "text": "Niederlande",
+        "text": "<strong>Chicago</strong>",
         "correct": false
       },
       {
-        "text": "Dänemark",
+        "text": "<strong>Montréal</strong>",
+        "correct": false
+      }
+    ]
+  },
+  {
+    "id": "q4",
+    "title": "Wo hat Stefan studiert?",
+    "imageHint": "Street View: Christliche Hochschule / Campusgelände",
+    "answers": [
+      {
+        "text": "<strong>Tabor Marburg</strong>",
         "correct": false
       },
       {
-        "text": "Belgien",
+        "text": "<strong>Theologisches Seminar St. Chrischona</strong>",
+        "correct": false
+      },
+      {
+        "text": "<strong>Internationales Studienzentrum Bad Liebenzell</strong>",
+        "correct": true
+      },
+      {
+        "text": "<strong>Albrecht-Bengel-Haus</strong>",
+        "correct": false
+      }
+    ]
+  },
+  {
+    "id": "q5",
+    "title": "In welchem Land waren Stefan und Debora auf Hochzeitsreise?",
+    "imageHint": "Street View: Südostasien / Reise-Location",
+    "answers": [
+      {
+        "text": "<strong>Thailand</strong>",
+        "correct": false
+      },
+      {
+        "text": "<strong>Vietnam</strong>",
+        "correct": false
+      },
+      {
+        "text": "<strong>Kambodscha</strong>",
+        "correct": true
+      },
+      {
+        "text": "<strong>Laos</strong>",
+        "correct": false
+      }
+    ]
+  },
+  {
+    "id": "q6",
+    "title": "In welchem Land liegt dieser Ort aus ihrem Missionsalltag?",
+    "imageHint": "Street View: Blantyre / südliches Afrika",
+    "answers": [
+      {
+        "text": "<strong>Uganda</strong>",
+        "correct": false
+      },
+      {
+        "text": "<strong>Malawi</strong>",
+        "correct": true
+      },
+      {
+        "text": "<strong>Kenia</strong>",
+        "correct": false
+      },
+      {
+        "text": "<strong>Tansania</strong>",
         "correct": false
       }
     ]

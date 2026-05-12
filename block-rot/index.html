@@ -1,113 +1,32 @@
 <!doctype html>
 <html lang="de">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TMT Geoguessr Test</title>
-  <link rel="stylesheet" href="../style.css">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TMT GeoGuessr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700&family=Fjalla+One&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
 </head>
 <body>
-  <main>
-    <section class="card">
-      <div class="topline">
-        <div>
-          <div class="kicker">TMT Geoguessr Test</div>
-          <h1 id="headline">Lade Quiz…</h1>
-        </div>
-        <div class="badge" id="blockBadge"></div>
-      </div>
-
-      <div class="question-hint" id="imageHint"></div>
-
-      <div class="answers" id="answers"></div>
-
-      <p class="status" id="status"></p>
-
-      <button class="secondary" id="nextBtn" style="display:none; margin-top:18px;">Weiter</button>
-    </section>
-  </main>
-
-  <script>window.BLOCK_ID = "rot"; window.BLOCK_LABEL = "Rot";</script>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-    import { firebaseConfig } from "../firebase-config.js";
-    import { QUESTIONS } from "../questions.js";
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const BLOCK_ID = window.BLOCK_ID;
-    const BLOCK_LABEL = window.BLOCK_LABEL;
-
-    const headline = document.getElementById("headline");
-    const blockBadge = document.getElementById("blockBadge");
-    const imageHint = document.getElementById("imageHint");
-    const answers = document.getElementById("answers");
-    const status = document.getElementById("status");
-    const nextBtn = document.getElementById("nextBtn");
-
-    let currentIndex = 0;
-    let answeredQuestions = new Set();
-
-    blockBadge.textContent = "Block: " + BLOCK_LABEL;
-
-    function renderQuestion() {
-      const q = QUESTIONS[currentIndex];
-
-      headline.textContent = q.title;
-      imageHint.textContent = q.imageHint;
-      status.textContent = "Wähle eine Antwort aus.";
-      nextBtn.style.display = "none";
-      answers.innerHTML = "";
-
-      q.answers.forEach((answer, index) => {
-        const btn = document.createElement("button");
-        btn.textContent = `${String.fromCharCode(65 + index)}: ${answer.text}`;
-        btn.onclick = () => submitAnswer(q, answer, index);
-        answers.appendChild(btn);
-      });
-    }
-
-    async function submitAnswer(question, answer, index) {
-      if (answeredQuestions.has(question.id)) return;
-
-      answeredQuestions.add(question.id);
-      [...answers.querySelectorAll("button")].forEach(btn => btn.disabled = true);
-      status.textContent = "Antwort wird gespeichert…";
-
-      try {
-        await addDoc(collection(db, "answers"), {
-          eventId: "tmt-geoguessr-test",
-          blockId: BLOCK_ID,
-          blockLabel: BLOCK_LABEL,
-          questionId: question.id,
-          questionTitle: question.title,
-          selectedIndex: index,
-          selectedText: answer.text,
-          correct: answer.correct,
-          createdAt: serverTimestamp(),
-          userAgent: navigator.userAgent
-        });
-
-        status.textContent = "Antwort gespeichert.";
-        if (currentIndex < QUESTIONS.length - 1) {
-          nextBtn.style.display = "inline-block";
-        } else {
-          status.textContent = "Danke, du bist fertig.";
-        }
-      } catch (error) {
-        console.error(error);
-        status.textContent = "Fehler beim Speichern. Prüfe Firebase-Konfiguration und Regeln.";
-      }
-    }
-
-    nextBtn.onclick = () => {
-      currentIndex++;
-      renderQuestion();
-    };
-
-    renderQuestion();
-  </script>
-</body>
-</html>
+<main>
+<section class="card start-card" id="startScreen"><div class="kicker">TMT Spiel</div><h1 class="brand-title">GeoGuessr</h1><p>Schau auf die Leinwand, entscheide dich für eine Antwort und tippe sie hier ein. Deine Antwort zählt für deinen Block.</p><div class="actions"><button id="startBtn">Spiel starten</button></div><p class="status">Block: <strong id="startBlockLabel"></strong></p></section>
+<section class="card hide" id="quizScreen"><div class="topline"><div><div class="kicker">TMT GeoGuessr</div><h1 class="question-title" id="headline">Frage</h1></div><div class="badge" id="blockBadge"></div></div><div class="progress-wrap"><div class="progress-head"><span class="progress-text" id="progressText">Frage 1 / 6</span><span class="progress-text" id="answeredText">noch nicht beantwortet</span></div><div class="progress"><span id="progressBar"></span></div></div><div class="question-hint" id="imageHint"></div><div class="answers" id="answers"></div><p class="status" id="status"></p><div class="actions"><button class="secondary" id="backBtn">Zurück</button><button id="nextBtn" disabled>Weiter</button></div></section>
+<section class="card start-card hide" id="finishScreen"><div class="kicker">Fertig</div><h1 class="brand-title">Danke!</h1><p>Deine Antworten wurden gespeichert. Die Regie sieht die Auswertung live.</p><p class="status">Bitte warte auf die Moderation.</p></section>
+</main>
+<script>window.BLOCK_ID="rot";window.BLOCK_LABEL="Rot";document.body.classList.add("theme-rot");</script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import { firebaseConfig } from "../firebase-config.js";
+import { QUESTIONS } from "../questions.js";
+const app=initializeApp(firebaseConfig);const db=getFirestore(app);const BLOCK_ID=window.BLOCK_ID;const BLOCK_LABEL=window.BLOCK_LABEL;
+const startScreen=document.getElementById("startScreen"),quizScreen=document.getElementById("quizScreen"),finishScreen=document.getElementById("finishScreen"),startBtn=document.getElementById("startBtn"),headline=document.getElementById("headline"),blockBadge=document.getElementById("blockBadge"),startBlockLabel=document.getElementById("startBlockLabel"),imageHint=document.getElementById("imageHint"),answersEl=document.getElementById("answers"),status=document.getElementById("status"),nextBtn=document.getElementById("nextBtn"),backBtn=document.getElementById("backBtn"),progressText=document.getElementById("progressText"),progressBar=document.getElementById("progressBar"),answeredText=document.getElementById("answeredText");
+let currentIndex=0,answeredQuestions={},selectedAnswer=null,shuffledCache={};blockBadge.textContent="Block "+BLOCK_LABEL;startBlockLabel.textContent=BLOCK_LABEL;
+function shuffleArray(array){const copy=[...array];for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]]}return copy}
+function getAnswers(question){if(!shuffledCache[question.id])shuffledCache[question.id]=shuffleArray(question.answers);return shuffledCache[question.id]}
+function renderQuestion(){const q=QUESTIONS[currentIndex],alreadyAnswered=answeredQuestions[q.id];selectedAnswer=null;headline.textContent=q.title;imageHint.textContent=q.imageHint;progressText.textContent=`Frage ${currentIndex+1} / ${QUESTIONS.length}`;progressBar.style.width=`${((currentIndex+1)/QUESTIONS.length)*100}%`;answeredText.textContent=alreadyAnswered?"beantwortet":"noch offen";status.textContent=alreadyAnswered?"Diese Frage hast du schon beantwortet.":"Wähle eine Antwort und drücke dann auf Weiter.";nextBtn.disabled=!alreadyAnswered;nextBtn.textContent=currentIndex===QUESTIONS.length-1?"Abschließen":"Weiter";backBtn.disabled=currentIndex===0;answersEl.innerHTML="";
+getAnswers(q).forEach((answer,index)=>{const btn=document.createElement("button");btn.className="answer-btn";btn.innerHTML=`<span class="answer-letter">${String.fromCharCode(65+index)}</span>${answer.text}`;btn.disabled=!!alreadyAnswered;if(alreadyAnswered&&alreadyAnswered.selectedText===answer.text)btn.classList.add("selected");btn.onclick=()=>{selectedAnswer={answer,index};[...answersEl.querySelectorAll(".answer-btn")].forEach(item=>item.classList.remove("selected"));btn.classList.add("selected");nextBtn.disabled=false;status.textContent="Antwort ausgewählt. Mit Weiter speichern."};answersEl.appendChild(btn)})}
+async function saveCurrentAnswer(){const q=QUESTIONS[currentIndex];if(answeredQuestions[q.id])return true;if(!selectedAnswer)return false;nextBtn.disabled=true;status.textContent="Antwort wird gespeichert…";try{await addDoc(collection(db,"answers"),{eventId:"tmt-geoguessr-test",blockId:BLOCK_ID,blockLabel:BLOCK_LABEL,questionId:q.id,questionTitle:q.title,selectedIndex:selectedAnswer.index,selectedText:selectedAnswer.answer.text.replace(/<[^>]*>/g,""),correct:selectedAnswer.answer.correct,createdAt:serverTimestamp()});answeredQuestions[q.id]={selectedText:selectedAnswer.answer.text};status.textContent="Antwort gespeichert.";return true}catch(error){console.error(error);status.textContent="Fehler beim Speichern. Bitte Hand heben.";nextBtn.disabled=false;return false}}
+startBtn.onclick=()=>{startScreen.classList.add("hide");quizScreen.classList.remove("hide");renderQuestion()};nextBtn.onclick=async()=>{const saved=await saveCurrentAnswer();if(!saved)return;if(currentIndex<QUESTIONS.length-1){currentIndex++;renderQuestion()}else{quizScreen.classList.add("hide");finishScreen.classList.remove("hide")}};backBtn.onclick=()=>{if(currentIndex>0){currentIndex--;renderQuestion()}};
+</script>
+</body></html>
