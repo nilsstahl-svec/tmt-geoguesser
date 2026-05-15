@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TMT GeoGuessr Remote</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700&family=Fjalla+One&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../style.css">
+
+<style>
+  body {
+    padding: 20px;
+    background: var(--paper);
+    color: var(--black);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .remote-card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+  }
+
+  .quick-jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 30px;
+  }
+
+  .quick-jump button {
+    min-width: 54px;
+    padding: 12px 16px;
+    box-shadow: none;
+  }
+
+  .quick-jump button.active {
+    outline: 3px solid var(--black);
+    background: var(--lime);
+  }
+
+  .result-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .result-nav button {
+    width: 100%;
+    padding: 20px;
+    font-size: 18px;
+  }
+
+  .slide-indicator {
+    text-align: center;
+    font-family: "IBM Plex Mono", monospace;
+    font-weight: 800;
+    color: var(--teal);
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin: 10px 0;
+  }
+
+  @media (max-width: 760px) {
+    .quick-jump {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .quick-jump button {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+</style>
+</head>
+
+<body>
+  <div class="remote-card">
+    <div class="topline">
+      <div>
+        <div class="kicker">Steuerung</div>
+        <h1 style="font-size: 32px; margin-bottom: 0;">Remote</h1>
+      </div>
+    </div>
+
+    <div class="slide-indicator" id="slideIndicator">Lade...</div>
+
+    <div class="quick-jump" id="quickJump"></div>
+
+    <div class="result-nav">
+      <button id="nextBtn">Weiter</button>
+      <button class="secondary" id="prevBtn">Zurück</button>
+      <button class="secondary" id="leaderboardBtn">Gesamtleaderboard</button>
+    </div>
+  </div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import { firebaseConfig } from "../firebase-config.js";
+import { QUESTIONS } from "../questions.js";
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const controlDocRef = doc(db, "control", "tmt-geoguessr-test");
+
+const slideIndicator = document.getElementById("slideIndicator");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const leaderboardBtn = document.getElementById("leaderboardBtn");
+const quickJump = document.getElementById("quickJump");
+
+let slide = 0;
+const finalSlideIndex = QUESTIONS.length + 1;
+
+function changeSlide(newSlide) {
+  if (slide !== newSlide) {
+    slide = newSlide;
+    setDoc(controlDocRef, { slide }, { merge: true }).catch(err => console.error("Fehler beim Speichern:", err));
+    render();
+  }
+}
+
+onSnapshot(controlDocRef, (docSnap) => {
+  if (docSnap.exists()) {
+    const data = docSnap.data();
+    if (typeof data.slide === 'number' && data.slide !== slide) {
+      slide = data.slide;
+      render();
+    }
+  }
+});
+
+function renderQuickJump() {
+  const buttons = [
+    { label: "Übersicht", target: 0 },
+    ...QUESTIONS.map((_, index) => ({ label: String(index + 1), target: index + 1 })),
+    { label: "Finale", target: finalSlideIndex }
+  ];
+
+  quickJump.innerHTML = buttons.map(button => `
+    <button
+      class="${button.target === slide ? "active" : "secondary"}"
+      data-target="${button.target}"
+    >
+      ${button.label}
+    </button>
+  `).join("");
+
+  quickJump.querySelectorAll("button").forEach(button => {
+    button.onclick = () => {
+      changeSlide(Number(button.dataset.target));
+    };
+  });
+}
+
+function render() {
+  prevBtn.disabled = slide === 0;
+  nextBtn.disabled = slide === finalSlideIndex;
+
+  nextBtn.textContent = slide === finalSlideIndex ? "Ende" : "Weiter";
+
+  if (slide === 0) {
+    slideIndicator.textContent = "Übersicht";
+  } else if (slide === finalSlideIndex) {
+    slideIndicator.textContent = "Finale";
+  } else {
+    slideIndicator.textContent = `Frage ${slide} / ${QUESTIONS.length}`;
+  }
+
+  renderQuickJump();
+}
+
+prevBtn.onclick = () => {
+  if (slide > 0) {
+    changeSlide(slide - 1);
+  }
+};
+
+nextBtn.onclick = () => {
+  if (slide < finalSlideIndex) {
+    changeSlide(slide + 1);
+  }
+};
+
+leaderboardBtn.onclick = () => {
+  changeSlide(finalSlideIndex);
+};
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "ArrowRight" && slide < finalSlideIndex) {
+    changeSlide(slide + 1);
+  }
+  if (event.key === "ArrowLeft" && slide > 0) {
+    changeSlide(slide - 1);
+  }
+  if (event.key.toLowerCase() === "l") {
+    changeSlide(finalSlideIndex);
+  }
+  if (event.key === "0") {
+    changeSlide(0);
+  }
+  const number = Number(event.key);
+  if (number >= 1 && number <= QUESTIONS.length) {
+    changeSlide(number);
+  }
+});
+
+render();
+</script>
+</body>
+</html>

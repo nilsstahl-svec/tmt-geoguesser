@@ -77,7 +77,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import { getFirestore, collection, query, where, onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 import { firebaseConfig } from "../firebase-config.js";
 import { QUESTIONS } from "../questions.js";
@@ -100,8 +100,28 @@ const nextBtn = document.getElementById("nextBtn");
 const leaderboardBtn = document.getElementById("leaderboardBtn");
 const quickJump = document.getElementById("quickJump");
 
+const controlDocRef = doc(db, "control", "tmt-geoguessr-test");
+
 let slide = 0;
 let latestData = [];
+
+function changeSlide(newSlide) {
+  if (slide !== newSlide) {
+    slide = newSlide;
+    setDoc(controlDocRef, { slide }, { merge: true }).catch(err => console.error("Fehler beim Speichern:", err));
+    render();
+  }
+}
+
+onSnapshot(controlDocRef, (docSnap) => {
+  if (docSnap.exists()) {
+    const data = docSnap.data();
+    if (typeof data.slide === 'number' && data.slide !== slide) {
+      slide = data.slide;
+      render();
+    }
+  }
+});
 
 const finalSlideIndex = QUESTIONS.length + 1;
 
@@ -191,8 +211,7 @@ function renderQuickJump() {
 
   quickJump.querySelectorAll("button").forEach(button => {
     button.onclick = () => {
-      slide = Number(button.dataset.target);
-      render();
+      changeSlide(Number(button.dataset.target));
     };
   });
 }
@@ -305,48 +324,40 @@ function render() {
 
 prevBtn.onclick = () => {
   if (slide > 0) {
-    slide--;
-    render();
+    changeSlide(slide - 1);
   }
 };
 
 nextBtn.onclick = () => {
   if (slide < finalSlideIndex) {
-    slide++;
-    render();
+    changeSlide(slide + 1);
   }
 };
 
 leaderboardBtn.onclick = () => {
-  slide = finalSlideIndex;
-  render();
+  changeSlide(finalSlideIndex);
 };
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "ArrowRight" && slide < finalSlideIndex) {
-    slide++;
-    render();
+    changeSlide(slide + 1);
   }
 
   if (event.key === "ArrowLeft" && slide > 0) {
-    slide--;
-    render();
+    changeSlide(slide - 1);
   }
 
   if (event.key.toLowerCase() === "l") {
-    slide = finalSlideIndex;
-    render();
+    changeSlide(finalSlideIndex);
   }
 
   if (event.key === "0") {
-    slide = 0;
-    render();
+    changeSlide(0);
   }
 
   const number = Number(event.key);
   if (number >= 1 && number <= QUESTIONS.length) {
-    slide = number;
-    render();
+    changeSlide(number);
   }
 });
 
